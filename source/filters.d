@@ -126,23 +126,19 @@ bool isReadWellFormed(SAMRecord rec)
     return ret; 
 }
 
-/// return true if VCF record AF field is <= max and >= min 
-bool filterGermlineResourceVCFRecords(VCFRecord rec, float max, float min)
+/// return AF if VCF record AF field is present
+float getGermlineResourceAF(VCFRecord rec)
 {
     bcf1_t * b = rec.line;
     bcf_hdr_t * h = rec.vcfheader.hdr;
     auto afRec = bcf_get_info(h, b, toUTFz!(char *)("AF"));
     if(!afRec){
         debug hts_log_warning("nopilesum:filters", "VCFRecord doesn't contian AF INFO field");
-        return false;
+        return 0.0;
     }
     if(afRec.type != BCF_BT_FLOAT){
         debug hts_log_warning("nopilesum:filters", "VCFRecord AF INFO field isn't a float");
-        return false;
+        return 0.0;
     }
-    if(afRec.v1.f > max || afRec.v1.f < min){
-        debug hts_log_debug("nopilesum:filters", "VCFRecord AF INFO is either greater than max or less than min");
-        return false;
-    }
-    return true;
+    return afRec.v1.f;
 }

@@ -36,19 +36,31 @@ int main(string[] args)
 	auto bamr = SAMReader(args[1]);
 	auto vcfr = VCFReader(args[2]);
 	writefln("%s\t%s\t%s\t%s\t%s\t%s","contig","position","ref_count","alt_count","other_alt_count","allele_frequency");
-	foreach (VCFRecord rec; vcfr.filter!(x => filterGermlineResourceVCFRecords(x, maxAF, minAF)))
+	foreach (VCFRecord rec; vcfr)
 	{
+        auto AF = getGermlineResourceAF(rec);
+        if(AF > maxAF || AF < minAF){
+            debug hts_log_debug("nopilesum:filters", "VCFRecord AF INFO is either greater than max or less than min");
+            continue;
+        }
 		auto alleles =  bamr.query(rec.chrom, rec.coordinates).countAlleles(rec.pos);
+        //if(bamr.query(rec.chrom, rec.coordinates).count > 0){
+        //    writefln("%s\t%d\t%d\t%d",
+        //            rec.chrom,
+        //            rec.pos + 1,
+        //            bamr.query(rec.chrom, rec.coordinates).count,
+        //            bamr.query(rec.chrom, rec.coordinates).filter!passesFilters.filter!(x => rec.pos >= x.pos).count);
+        //    writeln(alleles," ", rec.altAllelesAsArray[0]);
+        //}
 		int refCount;
 		int altCount;
 		int otherAltCount;
-		float af = 0.0;
 		string alt = rec.altAllelesAsArray[0];
 		if(rec.refAllele.length > 1 && alt.length > 1){
 			hts_log_warning("nopilesum:main", "we do not handle complex indels, skipping...");
 			continue;
 		}else if(rec.refAllele.length > 1 && alt.length == 1){
-			alt = '-'.repeat(alt.length).array.idup;
+			alt = '-'.repeat(rec.refAllele.length).array.idup;
 		}
 		foreach (allele; alleles.byKey)
 		{
@@ -57,20 +69,21 @@ int main(string[] args)
 			}
 			else if(alt == allele){
 				altCount = alleles[alt];
-			}else{
+			}else if(allele == "N"){
+                continue;   
+            }else{
 				otherAltCount += alleles[allele];
 			}
 
 		}
-		if(float(otherAltCount + refCount) != 0)
-			af = float(altCount) / float(altCount + otherAltCount + refCount);
-		if(af != 0.0){
+		if(refCount + altCount + otherAltCount != 0){
 			writefln("%s\t%d\t%d\t%d\t%d\t%f",
 						rec.chrom, 
-						rec.pos,refCount,
+						rec.pos + 1,
+                        refCount,
 						altCount,
 						otherAltCount,
-						af);
+						AF);
 		}
 	}
 	return 0;
