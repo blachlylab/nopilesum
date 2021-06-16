@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/nopilesum
+nopilesum.so
+nopilesum.dylib
+nopilesum.dll
+nopilesum.a
+nopilesum.lib
+nopilesum-test-*
+*.exe
+*.o
+*.obj
+*.lst

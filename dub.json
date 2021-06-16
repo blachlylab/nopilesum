@@ -1,0 +1,12 @@
+{
+	"authors": [
+		"Charles Gregory"
+	],
+	"copyright": "Copyright © 2021, Charles Gregory",
+	"description": "Compute pileup summaries without pileup.",
+	"license": "MIT",
+	"name": "nopilesum",
+	"dependencies": {
+		"dhtslib": "~develop"
+	}
+}
