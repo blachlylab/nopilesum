@@ -18,10 +18,12 @@ bool passesFilters(SAMRecord rec)
 {
     return rec.isQCPass && 
         rec.isMapped &&
+        //rec.isProperPair &&
         rec.isNotDuplicate && 
         rec.isPrimary && 
         rec.hasGoodMate && 
         rec.hasPositiveQual &&
+        rec.hasValidQual &&
         rec.hasGoodCigar &&
         rec.hasPositiveAlignedLength;
 }
@@ -92,7 +94,7 @@ bool isNotDuplicate(SAMRecord rec)
 /// is primary alignment?
 bool isPrimary(SAMRecord rec)
 {
-    bool ret = !rec.isSecondary && !rec.isSupplementary;
+    bool ret = !(rec.isSecondary || rec.isSupplementary);
     debug if (!ret) hts_log_warning("nopilesum:filters", "isPrimary filter tripped by read %s".format(rec.queryName));
     return ret;
 }
@@ -100,16 +102,46 @@ bool isPrimary(SAMRecord rec)
 /// is mate good?
 bool hasGoodMate(SAMRecord rec)
 {
-    bool ret = !rec.isMateMapped || rec.tid == rec.mateTID;
+    bool ret = false;
+    if(rec.isPaired){
+        if(rec.isMateMapped){
+           if(rec.tid == rec.mateTID)
+               ret = true;
+           else{
+               ret = false;
+           }
+        }else{
+            ret = true;
+        }
+    }else{
+        ret = true;
+    }
     debug if (!ret) hts_log_warning("nopilesum:filters", "hasGoodMate filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
+/// Not used
+/// is read in a proper pair
+bool isProperPair(SAMRecord rec)
+{
+    bool ret = (cast(bool)(rec.b.core.flag & BAM_FPROPER_PAIR));
+    debug if (!ret) hts_log_warning("nopilesum:filters", "isProperPair filter tripped by read %s".format(rec.queryName));
+    return ret;
+}
+
+
 /// Mapping qual is not zero 
 bool hasPositiveQual(SAMRecord rec)
 {
-    bool ret = rec.qual > 0;
+    bool ret = rec.qual != 0;
     debug if (!ret) hts_log_warning("nopilesum:filters", "hasPositiveQual filter tripped by read %s".format(rec.queryName));
+    return ret;
+}
+
+bool hasValidQual(SAMRecord rec)
+{
+    bool ret = rec.qual != 255;
+    debug if (!ret) hts_log_warning("nopilesum:filters", "hasValidQual filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 

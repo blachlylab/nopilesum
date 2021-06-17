@@ -77,7 +77,8 @@ int main(string[] args)
 
 		}
 		if(refCount + altCount + otherAltCount != 0){
-			writefln("%s\t%d\t%d\t%d\t%d\t%f",
+            //writeln(alleles);
+			writefln("%s\t%d\t%d\t%d\t%d\t%s",
 						rec.chrom, 
 						rec.pos + 1,
                         refCount,
