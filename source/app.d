@@ -35,6 +35,11 @@ int main(string[] args)
 	
 	auto bamr = SAMReader(args[1]);
 	auto vcfr = VCFReader(args[2]);
+	if(RecordType.RG in bamr.header){
+		auto sample = bamr.header.valueByPos(RecordType.RG, 0, "SM").idup;
+		writeln("#<METADATA>SAMPLE=" ~ sample);
+	}
+	
 	writefln("%s\t%s\t%s\t%s\t%s\t%s","contig","position","ref_count","alt_count","other_alt_count","allele_frequency");
 	foreach (VCFRecord rec; vcfr)
 	{
