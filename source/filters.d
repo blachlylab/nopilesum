@@ -62,7 +62,7 @@ bool hasGoodCigar(SAMRecord rec){
             ret = false;
         last_op = op;
     }
-    debug if (!ret) hts_log_warning("nopilesum:filters", "hasGoodCigar filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "hasGoodCigar filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
@@ -71,7 +71,7 @@ bool hasPositiveAlignedLength(SAMRecord rec)
 {
     /// check for invalid cigar
     bool ret = rec.cigar.alignedLength > 0 ? true : false;
-    debug if (!ret) hts_log_warning("nopilesum:filters", "hasPositiveAlignedLength filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "hasPositiveAlignedLength filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
@@ -79,7 +79,7 @@ bool hasPositiveAlignedLength(SAMRecord rec)
 bool isQCPass(SAMRecord rec)
 {
     bool ret = !(cast(bool)(rec.b.core.flag & BAM_FQCFAIL));
-    debug if (!ret) hts_log_warning("nopilesum:filters", "isQCPass filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "isQCPass filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
@@ -87,7 +87,7 @@ bool isQCPass(SAMRecord rec)
 bool isNotDuplicate(SAMRecord rec)
 {
     bool ret = !(cast(bool)(rec.b.core.flag & BAM_FDUP));
-    debug if (!ret) hts_log_warning("nopilesum:filters", "isNotDuplicate filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "isNotDuplicate filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
@@ -95,7 +95,7 @@ bool isNotDuplicate(SAMRecord rec)
 bool isPrimary(SAMRecord rec)
 {
     bool ret = !(rec.isSecondary || rec.isSupplementary);
-    debug if (!ret) hts_log_warning("nopilesum:filters", "isPrimary filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "isPrimary filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
@@ -116,7 +116,7 @@ bool hasGoodMate(SAMRecord rec)
     }else{
         ret = true;
     }
-    debug if (!ret) hts_log_warning("nopilesum:filters", "hasGoodMate filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "hasGoodMate filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
@@ -125,7 +125,7 @@ bool hasGoodMate(SAMRecord rec)
 bool isProperPair(SAMRecord rec)
 {
     bool ret = (cast(bool)(rec.b.core.flag & BAM_FPROPER_PAIR));
-    debug if (!ret) hts_log_warning("nopilesum:filters", "isProperPair filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "isProperPair filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
@@ -134,14 +134,14 @@ bool isProperPair(SAMRecord rec)
 bool hasPositiveQual(SAMRecord rec)
 {
     bool ret = rec.qual != 0;
-    debug if (!ret) hts_log_warning("nopilesum:filters", "hasPositiveQual filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "hasPositiveQual filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
 bool hasValidQual(SAMRecord rec)
 {
     bool ret = rec.qual != 255;
-    debug if (!ret) hts_log_warning("nopilesum:filters", "hasValidQual filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "hasValidQual filter tripped by read %s".format(rec.queryName));
     return ret;
 }
 
@@ -154,7 +154,7 @@ bool isReadWellFormed(SAMRecord rec)
         !(CigarItr(rec.cigar).canFind!(x => x == Ops.REF_SKIP)) && 
         rec.length > 0 &&
         !(CigarItr(rec.cigar).map!(x => cast(int) (CigarOp(0,x).is_query_consuming)).sum == rec.length);
-    debug if (!ret) hts_log_warning("nopilesum:filters", "isReadWellFormed filter tripped by read %s".format(rec.queryName));
+    if (!ret) hts_log_info("nopilesum:filters", "isReadWellFormed filter tripped by read %s".format(rec.queryName));
     return ret; 
 }
 
@@ -165,11 +165,11 @@ float getGermlineResourceAF(VCFRecord rec)
     bcf_hdr_t * h = rec.vcfheader.hdr;
     auto afRec = bcf_get_info(h, b, toUTFz!(char *)("AF"));
     if(!afRec){
-        debug hts_log_warning("nopilesum:filters", "VCFRecord doesn't contian AF INFO field");
+        hts_log_info("nopilesum:filters", "VCFRecord doesn't contian AF INFO field");
         return 0.0;
     }
     if(afRec.type != BCF_BT_FLOAT){
-        debug hts_log_warning("nopilesum:filters", "VCFRecord AF INFO field isn't a float");
+        hts_log_info("nopilesum:filters", "VCFRecord AF INFO field isn't a float");
         return 0.0;
     }
     return afRec.v1.f;
