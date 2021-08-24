@@ -8,5 +8,16 @@
 	"name": "nopilesum",
 	"dependencies": {
 		"dhtslib": "~develop"
-	}
+	},
+	"configurations": [
+		{
+			"name": "standard",
+			"targetType": "executable"
+		},
+		{
+			"name": "bioconda",
+			"targetType": "executable",
+			"dflags": ["-L-L$PREFIX/lib"]
+		}
+	]
 }
