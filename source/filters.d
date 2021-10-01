@@ -6,9 +6,7 @@ import std.utf : toUTFz;
 
 import dhtslib.sam.record;
 import dhtslib.sam.cigar;
-import dhtslib.vcf.record;
-import dhtslib.vcf.header;
-import htslib.vcf;
+import dhtslib.vcf;
 import htslib.hts_log;
 import htslib.sam;
 
@@ -161,16 +159,15 @@ bool isReadWellFormed(SAMRecord rec)
 /// return AF if VCF record AF field is present
 float getGermlineResourceAF(VCFRecord rec)
 {
-    bcf1_t * b = rec.line;
-    bcf_hdr_t * h = rec.vcfheader.hdr;
-    auto afRec = bcf_get_info(h, b, toUTFz!(char *)("AF"));
-    if(!afRec){
-        hts_log_info("nopilesum:filters", "VCFRecord doesn't contian AF INFO field");
-        return 0.0;
+    InfoField[string] infos = rec.getInfos;
+    if("AF" in infos){
+        InfoField af = infos["AF"];
+        if(af.type != BcfRecordType.Float){
+            hts_log_info("nopilesum:filters", "VCFRecord AF INFO field isn't a float");
+            return 0.0;
+        }
+        return af.to!(float[])[0];
     }
-    if(afRec.type != BCF_BT_FLOAT){
-        hts_log_info("nopilesum:filters", "VCFRecord AF INFO field isn't a float");
-        return 0.0;
-    }
-    return afRec.v1.f;
+    hts_log_info("nopilesum:filters", "VCFRecord doesn't contian AF INFO field");
+    return 0.0;
 }

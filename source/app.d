@@ -14,6 +14,7 @@ import filters;
 
 float maxAF = 0.2;
 float minAF = 0.01;
+bool quiet = false;
 bool verbose = false;
 bool verbose2 = false;
 
@@ -23,14 +24,16 @@ int main(string[] args)
 	auto res = getopt(args, 
 			"max-af","VCF records with INFO/AF fields above this threshold won't be used (default 0.2)", &maxAF, 
 			"min-af", "VCF records with INFO/AF fields below this threshold won't be used (default 0.01)", &minAF,
-			"verbose|v", "see warnings", &verbose,
-			"debug", "see extra info", &verbose2
+			"quiet|q", "quiet warnings", &quiet,
+			"verbose|v", "see other info", &verbose,
+			"debug|d", "see even more info", &verbose2
 		);
 	
 	// set logging
-	hts_set_log_level(htsLogLevel.HTS_LOG_ERROR);
-	if(verbose) hts_set_log_level(htsLogLevel.HTS_LOG_WARNING);
-	if(verbose2) hts_set_log_level(htsLogLevel.HTS_LOG_INFO);
+	if(quiet) hts_set_log_level(htsLogLevel.HTS_LOG_ERROR);
+	else hts_set_log_level(htsLogLevel.HTS_LOG_WARNING);
+	if(verbose) hts_set_log_level(htsLogLevel.HTS_LOG_INFO);
+	if(verbose2) hts_set_log_level(htsLogLevel.HTS_LOG_DEBUG);
 	if (res.helpWanted || (args.length < 3))
 	{
 		defaultGetoptPrinter("nopilesum: get pileup summaries\nusage: nopilesum <in.bam> <in.vcf> > summary.txt",
@@ -76,6 +79,8 @@ int main(string[] args)
 		int refCount;
 		int altCount;
 		int otherAltCount;
+		if(rec.altAllelesAsArray.length > 1)
+			hts_log_warning("nopilesum:main", "multiallelic site: just using the first alt allele");
 		string alt = rec.altAllelesAsArray[0];
 
 		// if a complex INDEL we ignore, to difficult to handle
